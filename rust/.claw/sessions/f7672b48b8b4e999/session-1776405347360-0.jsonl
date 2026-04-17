@@ -1,0 +1,3 @@
+{"created_at_ms":1776405347359,"model":"openai/kimi-k2.5","session_id":"session-1776405347360-0","type":"session_meta","updated_at_ms":1776405355420,"version":1,"workspace_root":"/private/tmp/claw-code-fork/rust"}
+{"message":{"blocks":[{"text":"说你好","type":"text"}],"role":"user"},"type":"message"}
+{"message":{"blocks":[{"text":"你好！很高兴见到你。有什么我可以帮助你的吗？","type":"text"}],"role":"assistant","usage":{"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"input_tokens":8911,"output_tokens":39}},"type":"message"}

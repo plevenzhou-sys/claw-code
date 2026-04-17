@@ -4784,10 +4784,12 @@ fn convert_messages(messages: &[ConversationMessage]) -> Vec<InputMessage> {
                     },
                 })
                 .collect::<Vec<_>>();
-            (!content.is_empty()).then(|| InputMessage {
-                role: role.to_string(),
-                content,
-                reasoning_content: message.reasoning_content.clone(),
+            (!content.is_empty()).then(|| {
+                InputMessage {
+                    role: role.to_string(),
+                    content,
+                    reasoning_content: message.reasoning_content.clone(),
+                }
             })
         })
         .collect()

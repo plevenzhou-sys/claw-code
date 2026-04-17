@@ -24,10 +24,11 @@ use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant, UNIX_EPOCH};
 
 use api::{
-    detect_provider_kind, resolve_startup_auth_source, AnthropicClient, AuthSource,
-    ContentBlockDelta, InputContentBlock, InputMessage, MessageRequest, MessageResponse,
-    OutputContentBlock, PromptCache, ProviderClient as ApiProviderClient, ProviderKind,
-    StreamEvent as ApiStreamEvent, ToolChoice, ToolDefinition, ToolResultContentBlock,
+    detect_provider_kind, model_rejects_is_error_field, resolve_startup_auth_source,
+    AnthropicClient, AuthSource, ContentBlockDelta, InputContentBlock, InputMessage,
+    MessageRequest, MessageResponse, OutputContentBlock, PromptCache,
+    ProviderClient as ApiProviderClient, ProviderKind, StreamEvent as ApiStreamEvent, ToolChoice,
+    ToolDefinition, ToolResultContentBlock,
 };
 
 use commands::{
@@ -6903,6 +6904,20 @@ impl AnthropicRuntimeClient {
         message_request: &MessageRequest,
         apply_stall_timeout: bool,
     ) -> Result<Vec<AssistantEvent>, RuntimeError> {
+        // Kimi thinking models require reasoning_content round-trip which the
+        // streaming path cannot handle. Use non-streaming send_message and
+        // convert via response_to_events (defined in tools crate).
+        if api::model_rejects_is_error_field(&message_request.model) {
+            let response = self
+                .client
+                .send_message(message_request)
+                .await
+                .map_err(|error| {
+                    RuntimeError::new(format_user_visible_api_error(&self.session_id, &error))
+                })?;
+            return Ok(response_to_events_cli(response));
+        }
+
         let mut stream = self
             .client
             .stream_message(message_request)
@@ -8126,6 +8141,33 @@ fn permission_policy(
     ))
 }
 
+/// Convert a non-streaming MessageResponse into AssistantEvents.
+/// Used as fallback for kimi thinking models that can't use streaming.
+fn response_to_events_cli(response: MessageResponse) -> Vec<AssistantEvent> {
+    let mut events = Vec::new();
+    if let Some(rc) = response.reasoning_content {
+        events.push(AssistantEvent::ReasoningContent(rc));
+    }
+    for block in response.content {
+        match block {
+            OutputContentBlock::Text { text } => {
+                events.push(AssistantEvent::TextDelta(text));
+            }
+            OutputContentBlock::ToolUse { id, name, input } => {
+                events.push(AssistantEvent::ToolUse {
+                    id,
+                    name,
+                    input: input.to_string(),
+                });
+            }
+            _ => {}
+        }
+    }
+    events.push(AssistantEvent::Usage(response.usage.token_usage()));
+    events.push(AssistantEvent::MessageStop);
+    events
+}
+
 fn convert_messages(messages: &[ConversationMessage]) -> Vec<InputMessage> {
     messages
         .iter()
@@ -8162,7 +8204,7 @@ fn convert_messages(messages: &[ConversationMessage]) -> Vec<InputMessage> {
             (!content.is_empty()).then(|| InputMessage {
                 role: role.to_string(),
                 content,
-            reasoning_content: None,
+                reasoning_content: message.reasoning_content.clone(),
             })
         })
         .collect()
