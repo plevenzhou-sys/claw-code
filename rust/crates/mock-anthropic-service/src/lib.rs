@@ -683,9 +683,9 @@ fn text_message_response(id: &str, text: &str) -> MessageResponse {
             cache_creation_input_tokens: 0,
             cache_read_input_tokens: 0,
             output_tokens: 6,
-        reasoning_content: None,
         },
-        request_id: None, reasoning_content: None,
+        request_id: None,
+        reasoning_content: None,
     }
 }
 
@@ -710,9 +710,9 @@ fn text_message_response_with_usage(
             cache_creation_input_tokens: 0,
             cache_read_input_tokens: 0,
             output_tokens,
-        reasoning_content: None,
         },
-        request_id: None, reasoning_content: None,
+        request_id: None,
+        reasoning_content: None,
     }
 }
 
@@ -730,7 +730,6 @@ fn tool_message_response(
             input,
         }],
     )
-reasoning_content: None,
 }
 
 struct ToolUseMessage<'a> {
