@@ -11317,7 +11317,6 @@ UU conflicted.rs",
                     OutputContentBlock::Thinking {
                         thinking: "step 1".to_string(),
                         signature: Some("sig_123".to_string()),
-                    reasoning_content: None,
                     },
                     OutputContentBlock::Text {
                         text: "Final answer".to_string(),
