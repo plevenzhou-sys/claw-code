@@ -149,6 +149,7 @@ impl MessageResponse {
     #[must_use]
     pub fn total_tokens(&self) -> u32 {
         self.usage.total_tokens()
+    reasoning_content: None,
     }
 }
 
@@ -309,6 +310,7 @@ mod tests {
                 cache_creation_input_tokens: 100_000,
                 cache_read_input_tokens: 200_000,
                 output_tokens: 500_000,
+            reasoning_content: None,
             },
             request_id: None, reasoning_content: None,
         };

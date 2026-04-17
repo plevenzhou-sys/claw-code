@@ -728,6 +728,7 @@ mod tests {
                 cache_creation_input_tokens: 5,
                 cache_read_input_tokens,
                 output_tokens,
+            reasoning_content: None,
             },
             request_id: Some("req_test".to_string()),
         }

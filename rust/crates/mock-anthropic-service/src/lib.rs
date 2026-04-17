@@ -488,6 +488,7 @@ fn build_message_response(request: &MessageRequest, scenario: Scenario) -> Messa
                 "read_file",
                 json!({"path": "fixture.txt"}),
             ),
+        reasoning_content: None,
         },
         Scenario::GrepChunkAssembly => match latest_tool_result(request) {
             Some((tool_output, _)) => text_message_response(
@@ -682,6 +683,7 @@ fn text_message_response(id: &str, text: &str) -> MessageResponse {
             cache_creation_input_tokens: 0,
             cache_read_input_tokens: 0,
             output_tokens: 6,
+        reasoning_content: None,
         },
         request_id: None, reasoning_content: None,
     }
@@ -708,6 +710,7 @@ fn text_message_response_with_usage(
             cache_creation_input_tokens: 0,
             cache_read_input_tokens: 0,
             output_tokens,
+        reasoning_content: None,
         },
         request_id: None, reasoning_content: None,
     }
@@ -727,6 +730,7 @@ fn tool_message_response(
             input,
         }],
     )
+reasoning_content: None,
 }
 
 struct ToolUseMessage<'a> {
@@ -746,6 +750,7 @@ fn tool_message_response_many(id: &str, tool_uses: &[ToolUseMessage<'_>]) -> Mes
                 id: tool_use.tool_id.to_string(),
                 name: tool_use.tool_name.to_string(),
                 input: tool_use.input.clone(),
+            reasoning_content: None,
             })
             .collect(),
         model: DEFAULT_MODEL.to_string(),

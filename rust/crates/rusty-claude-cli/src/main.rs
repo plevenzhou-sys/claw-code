@@ -8162,6 +8162,7 @@ fn convert_messages(messages: &[ConversationMessage]) -> Vec<InputMessage> {
             (!content.is_empty()).then(|| InputMessage {
                 role: role.to_string(),
                 content,
+            reasoning_content: None,
             })
         })
         .collect()
@@ -11252,6 +11253,7 @@ UU conflicted.rs",
                     output_tokens: 1,
                     cache_creation_input_tokens: 0,
                     cache_read_input_tokens: 0,
+                reasoning_content: None,
                 },
                 request_id: None, reasoning_content: None,
             },
@@ -11287,6 +11289,7 @@ UU conflicted.rs",
                     output_tokens: 1,
                     cache_creation_input_tokens: 0,
                     cache_read_input_tokens: 0,
+                reasoning_content: None,
                 },
                 request_id: None, reasoning_content: None,
             },
@@ -11314,6 +11317,7 @@ UU conflicted.rs",
                     OutputContentBlock::Thinking {
                         thinking: "step 1".to_string(),
                         signature: Some("sig_123".to_string()),
+                    reasoning_content: None,
                     },
                     OutputContentBlock::Text {
                         text: "Final answer".to_string(),
