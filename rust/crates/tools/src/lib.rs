@@ -4774,6 +4774,7 @@ fn convert_messages(messages: &[ConversationMessage]) -> Vec<InputMessage> {
             (!content.is_empty()).then(|| InputMessage {
                 role: role.to_string(),
                 content,
+                reasoning_content: message.reasoning_content.clone(),
             })
         })
         .collect()
@@ -4810,6 +4811,11 @@ fn push_output_block(
 fn response_to_events(response: MessageResponse) -> Vec<AssistantEvent> {
     let mut events = Vec::new();
     let mut pending_tools = BTreeMap::new();
+
+    // Carry reasoning_content through so it gets stored on the ConversationMessage
+    if let Some(rc) = response.reasoning_content {
+        events.push(AssistantEvent::ReasoningContent(rc));
+    }
 
     for (index, block) in response.content.into_iter().enumerate() {
         let index = u32::try_from(index).expect("response block index overflow");

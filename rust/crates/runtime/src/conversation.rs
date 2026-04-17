@@ -36,6 +36,8 @@ pub enum AssistantEvent {
     },
     Usage(TokenUsage),
     PromptCache(PromptCacheEvent),
+    /// Reasoning content from thinking models (Kimi K2.5, etc.)
+    ReasoningContent(String),
     MessageStop,
 }
 
@@ -718,6 +720,7 @@ fn build_assistant_message(
     let mut prompt_cache_events = Vec::new();
     let mut finished = false;
     let mut usage = None;
+    let mut reasoning_content = None;
 
     for event in events {
         match event {
@@ -728,6 +731,7 @@ fn build_assistant_message(
             }
             AssistantEvent::Usage(value) => usage = Some(value),
             AssistantEvent::PromptCache(event) => prompt_cache_events.push(event),
+            AssistantEvent::ReasoningContent(rc) => reasoning_content = Some(rc),
             AssistantEvent::MessageStop => {
                 finished = true;
             }
@@ -745,8 +749,11 @@ fn build_assistant_message(
         return Err(RuntimeError::new("assistant stream produced no content"));
     }
 
+    let mut msg = ConversationMessage::assistant_with_usage(blocks, usage);
+    msg.reasoning_content = reasoning_content;
+
     Ok((
-        ConversationMessage::assistant_with_usage(blocks, usage),
+        msg,
         usage,
         prompt_cache_events,
     ))

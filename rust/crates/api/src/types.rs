@@ -45,6 +45,11 @@ impl MessageRequest {
 pub struct InputMessage {
     pub role: String,
     pub content: Vec<InputContentBlock>,
+    /// Opaque reasoning content from thinking models (Kimi K2.5, etc.).
+    /// Must be round-tripped back to the provider on assistant messages
+    /// that included tool calls, otherwise the provider rejects with 400.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reasoning_content: Option<String>,
 }
 
 impl InputMessage {
@@ -53,6 +58,7 @@ impl InputMessage {
         Self {
             role: "user".to_string(),
             content: vec![InputContentBlock::Text { text: text.into() }],
+            reasoning_content: None,
         }
     }
 
@@ -71,6 +77,7 @@ impl InputMessage {
                 }],
                 is_error,
             }],
+            reasoning_content: None,
         }
     }
 }
@@ -133,6 +140,9 @@ pub struct MessageResponse {
     pub usage: Usage,
     #[serde(default)]
     pub request_id: Option<String>,
+    /// Reasoning content from thinking models (Kimi K2.5, etc.)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reasoning_content: Option<String>,
 }
 
 impl MessageResponse {
@@ -300,7 +310,7 @@ mod tests {
                 cache_read_input_tokens: 200_000,
                 output_tokens: 500_000,
             },
-            request_id: None,
+            request_id: None, reasoning_content: None,
         };
 
         let cost = response.usage.estimated_cost_usd(&response.model);

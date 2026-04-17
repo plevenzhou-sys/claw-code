@@ -478,7 +478,7 @@ impl StreamState {
                         cache_read_input_tokens: 0,
                         output_tokens: 0,
                     },
-                    request_id: None,
+                    request_id: None, reasoning_content: None,
                 },
             }));
         }
@@ -691,6 +691,11 @@ struct ChatMessage {
     content: Option<String>,
     #[serde(default)]
     tool_calls: Vec<ResponseToolCall>,
+    /// Kimi K2.5 and other thinking models return reasoning in this field.
+    /// Must be preserved and round-tripped back in conversation history,
+    /// otherwise the provider rejects with 400 "reasoning_content is missing".
+    #[serde(default)]
+    reasoning_content: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -979,6 +984,11 @@ pub fn translate_message(message: &InputMessage, model: &str) -> Vec<Value> {
                 if !tool_calls.is_empty() {
                     msg["tool_calls"] = json!(tool_calls);
                 }
+                // Round-trip reasoning_content for thinking models (Kimi K2.5, etc.)
+                // The provider requires this field on assistant messages that had tool_calls.
+                if let Some(rc) = &message.reasoning_content {
+                    msg["reasoning_content"] = json!(rc);
+                }
                 vec![msg]
             }
         }
@@ -1202,6 +1212,7 @@ fn normalize_response(
         kind: "message".to_string(),
         role: choice.message.role,
         content,
+        reasoning_content: choice.message.reasoning_content,
         model: response.model.if_empty_then(model.to_string()),
         stop_reason: choice
             .finish_reason
@@ -1219,7 +1230,7 @@ fn normalize_response(
                 .as_ref()
                 .map_or(0, |usage| usage.completion_tokens),
         },
-        request_id: None,
+        request_id: None, reasoning_content: None,
     })
 }
 
