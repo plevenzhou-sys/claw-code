@@ -4,9 +4,10 @@ use std::process::Command;
 use std::time::{Duration, Instant};
 
 use api::{
-    max_tokens_for_model, resolve_model_alias, ApiError, ContentBlockDelta, InputContentBlock,
-    InputMessage, MessageRequest, MessageResponse, OutputContentBlock, ProviderClient,
-    StreamEvent as ApiStreamEvent, ToolChoice, ToolDefinition, ToolResultContentBlock,
+    max_tokens_for_model, model_rejects_is_error_field, resolve_model_alias, ApiError,
+    ContentBlockDelta, InputContentBlock, InputMessage, MessageRequest, MessageResponse,
+    OutputContentBlock, ProviderClient, StreamEvent as ApiStreamEvent, ToolChoice, ToolDefinition,
+    ToolResultContentBlock,
 };
 use plugins::PluginTool;
 use reqwest::blocking::Client;
@@ -4619,6 +4620,14 @@ async fn stream_with_provider(
     client: &ProviderClient,
     message_request: &MessageRequest,
 ) -> Result<Vec<AssistantEvent>, ApiError> {
+    // Kimi thinking models require reasoning_content round-trip which the
+    // streaming path cannot handle. Use non-streaming send_message + convert
+    // the complete response to events via response_to_events().
+    if api::model_rejects_is_error_field(&message_request.model) {
+        let response = client.send_message(message_request).await?;
+        return Ok(response_to_events(response));
+    }
+
     let mut stream = client.stream_message(message_request).await?;
     let mut events = Vec::new();
     let mut pending_tools: BTreeMap<u32, (String, String, String)> = BTreeMap::new();
