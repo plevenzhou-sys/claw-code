@@ -919,8 +919,12 @@ pub fn build_chat_completion_request(
         }
     }
     // reasoning_effort for OpenAI-compatible reasoning models (o4-mini, o3, etc.)
+    // Only send for actual reasoning models — non-reasoning providers (Kimi, etc.)
+    // reject unknown fields with 400.
     if let Some(effort) = &request.reasoning_effort {
-        payload["reasoning_effort"] = json!(effort);
+        if is_reasoning_model(&request.model) {
+            payload["reasoning_effort"] = json!(effort);
+        }
     }
 
     payload
