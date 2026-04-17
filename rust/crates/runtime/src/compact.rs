@@ -167,6 +167,7 @@ pub fn compact_session(session: &Session, config: CompactionConfig) -> Compactio
         role: MessageRole::System,
         blocks: vec![ContentBlock::Text { text: continuation }],
         usage: None,
+        reasoning_content: None,
     }];
     compacted_messages.extend(preserved);
 
@@ -592,6 +593,7 @@ mod tests {
                     text: "recent".to_string(),
                 }],
                 usage: None,
+                reasoning_content: None,
             },
         ];
 
@@ -704,6 +706,7 @@ mod tests {
                     text: get_compact_continuation_message(summary, true, true),
                 }],
                 usage: None,
+                reasoning_content: None,
             },
             ConversationMessage::user_text("tiny"),
             ConversationMessage::assistant(vec![ContentBlock::Text {

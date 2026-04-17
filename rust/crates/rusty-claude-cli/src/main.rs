@@ -9535,7 +9535,7 @@ mod tests {
                     output: "total 8\ndrwxr-xr-x  2 user staff   64 Apr  7 12:00 .".to_string(),
                     is_error: false,
                 }],
-                usage: None,
+                usage: None, reasoning_content: None,
             },
         ];
 
@@ -9575,7 +9575,7 @@ mod tests {
                 output: "   ".to_string(),
                 is_error: true,
             }],
-            usage: None,
+            usage: None, reasoning_content: None,
         }];
 
         // when
@@ -10835,7 +10835,7 @@ UU conflicted.rs",
                     output: "ok".to_string(),
                     is_error: false,
                 }],
-                usage: None,
+                usage: None, reasoning_content: None,
             },
         ];
 
