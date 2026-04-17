@@ -488,7 +488,6 @@ fn build_message_response(request: &MessageRequest, scenario: Scenario) -> Messa
                 "read_file",
                 json!({"path": "fixture.txt"}),
             ),
-        reasoning_content: None,
         },
         Scenario::GrepChunkAssembly => match latest_tool_result(request) {
             Some((tool_output, _)) => text_message_response(
