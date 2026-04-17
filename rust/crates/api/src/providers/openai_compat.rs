@@ -443,6 +443,8 @@ struct StreamState {
     stop_reason: Option<String>,
     usage: Option<Usage>,
     tool_calls: BTreeMap<u32, ToolCallState>,
+    /// Accumulated reasoning_content from streaming deltas.
+    reasoning_content: Option<String>,
 }
 
 impl StreamState {
@@ -456,6 +458,7 @@ impl StreamState {
             stop_reason: None,
             usage: None,
             tool_calls: BTreeMap::new(),
+            reasoning_content: None,
         }
     }
 
@@ -508,6 +511,13 @@ impl StreamState {
                     index: 0,
                     delta: ContentBlockDelta::TextDelta { text: content },
                 }));
+            }
+
+            // Accumulate reasoning_content from thinking models (Kimi K2.5)
+            if let Some(rc) = choice.delta.reasoning_content.filter(|v| !v.is_empty()) {
+                self.reasoning_content
+                    .get_or_insert_with(String::new)
+                    .push_str(&rc);
             }
 
             for tool_call in choice.delta.tool_calls {
@@ -743,6 +753,9 @@ struct ChunkDelta {
     content: Option<String>,
     #[serde(default, deserialize_with = "deserialize_null_as_empty_vec")]
     tool_calls: Vec<DeltaToolCall>,
+    /// Reasoning content from thinking models (Kimi K2.5, etc.)
+    #[serde(default)]
+    reasoning_content: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -882,14 +895,18 @@ pub fn build_chat_completion_request(
         "max_tokens"
     };
 
+    // Kimi thinking models require reasoning_content round-trip which our
+    // streaming path does not support. Force non-streaming for kimi models.
+    let use_stream = request.stream && !model_rejects_is_error_field(wire_model);
+
     let mut payload = json!({
         "model": wire_model,
         max_tokens_key: request.max_tokens,
         "messages": messages,
-        "stream": request.stream,
+        "stream": use_stream,
     });
 
-    if request.stream && should_request_stream_usage(config) {
+    if use_stream && should_request_stream_usage(config) {
         payload["stream_options"] = json!({ "include_usage": true });
     }
 

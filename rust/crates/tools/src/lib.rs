@@ -4627,6 +4627,10 @@ async fn stream_with_provider(
     while let Some(event) = stream.next_event().await? {
         match event {
             ApiStreamEvent::MessageStart(start) => {
+                // Capture reasoning_content from the initial MessageResponse
+                if let Some(rc) = start.message.reasoning_content {
+                    events.push(AssistantEvent::ReasoningContent(rc));
+                }
                 for block in start.message.content {
                     push_output_block(block, 0, &mut events, &mut pending_tools, true);
                 }
