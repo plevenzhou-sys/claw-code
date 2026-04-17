@@ -683,7 +683,7 @@ fn text_message_response(id: &str, text: &str) -> MessageResponse {
             cache_read_input_tokens: 0,
             output_tokens: 6,
         },
-        request_id: None,
+        request_id: None, reasoning_content: None,
     }
 }
 
@@ -709,7 +709,7 @@ fn text_message_response_with_usage(
             cache_read_input_tokens: 0,
             output_tokens,
         },
-        request_id: None,
+        request_id: None, reasoning_content: None,
     }
 }
 
@@ -757,7 +757,7 @@ fn tool_message_response_many(id: &str, tool_uses: &[ToolUseMessage<'_>]) -> Mes
             cache_read_input_tokens: 0,
             output_tokens: 3,
         },
-        request_id: None,
+        request_id: None, reasoning_content: None,
     }
 }
 
