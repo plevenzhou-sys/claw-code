@@ -1230,7 +1230,7 @@ fn normalize_response(
                 .as_ref()
                 .map_or(0, |usage| usage.completion_tokens),
         },
-        request_id: None, reasoning_content: None,
+        request_id: None,
     })
 }
 
